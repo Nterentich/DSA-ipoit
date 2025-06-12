@@ -1,11 +1,5 @@
 package by.it.group410971.teterich.lesson01;
 
-/*
- * Даны целые числа 1<=n<=1E18 и 2<=m<=1E5,
- * необходимо найти остаток от деления n-го числа Фибоначчи на m
- * время расчета должно быть не более 2 секунд
- */
-
 public class FiboC {
 
     private long startTime = System.currentTimeMillis();
@@ -22,11 +16,39 @@ public class FiboC {
     }
 
     long fasterC(long n, int m) {
-        //Интуитивно найти решение не всегда просто и
-        //возможно потребуется дополнительный поиск информации
-        return -1L;
+        if (m == 1) {
+            return 0;
+        }
+        long pisanoPeriod = getPisanoPeriod(m);
+        long reducedN = n % pisanoPeriod;
+        return fibonacciMod(reducedN, m);
     }
 
+    private long getPisanoPeriod(int m) {
+        long a = 0, b = 1, c;
+        long period = 0;
+        for (int i = 0; i < m * m; i++) {
+            c = (a + b) % m;
+            a = b;
+            b = c;
+            period++;
+            if (a == 0 && b == 1) {
+                return period;
+            }
+        }
+        return period;
+    }
 
+    private long fibonacciMod(long n, int m) {
+        if (n == 0) {
+            return 0;
+        }
+        long a = 0, b = 1, c;
+        for (long i = 2; i <= n; i++) {
+            c = (a + b) % m;
+            a = b;
+            b = c;
+        }
+        return b;
+    }
 }
-
