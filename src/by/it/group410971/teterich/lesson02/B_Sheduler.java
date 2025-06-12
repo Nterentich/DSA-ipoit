@@ -1,13 +1,9 @@
 package by.it.group410971.teterich.lesson02;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
-/*
-Даны интервальные события events
-реализуйте метод calcStartTimes, так, чтобы число принятых к выполнению
-непересекающихся событий было максимально.
-Алгоритм жадный. Для реализации обдумайте надежный шаг.
-*/
 
 public class B_Sheduler {
     public static void main(String[] args) {
@@ -25,19 +21,21 @@ public class B_Sheduler {
     }
 
     List<Event> calcStartTimes(Event[] events, int from, int to) {
-        //Events - события которые нужно распределить в аудитории
-        //в период [from, int] (включительно).
-        //оптимизация проводится по наибольшему числу непересекающихся событий.
-        //Начало и конец событий могут совпадать.
-        List<Event> result;
-        result = new ArrayList<>();
-        //ваше решение.
+        List<Event> result = new ArrayList<>();
+        // Сортируем события по времени окончания
+        Arrays.sort(events, Comparator.comparingInt(e -> e.stop));
 
+        int lastEnd = from;
+        for (Event event : events) {
+            if (event.start >= lastEnd && event.stop <= to) {
+                result.add(event);
+                lastEnd = event.stop;
+            }
+        }
 
-        return result;          //вернем итог
+        return result;
     }
 
-    //событие у аудитории(два поля: начало и конец)
     static class Event {
         int start;
         int stop;

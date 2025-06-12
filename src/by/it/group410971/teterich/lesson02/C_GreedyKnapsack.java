@@ -1,20 +1,8 @@
 package by.it.group410971.teterich.lesson02;
-/*
-Даны
-1) объем рюкзака 4
-2) число возможных предметов 60
-3) сам набор предметов
-    100 50
-    120 30
-    100 50
-Все это указано в файле (by/it/a_khmelev/lesson02/greedyKnapsack.txt)
-
-Необходимо собрать наиболее дорогой вариант рюкзака для этого объема
-Предметы можно резать на кусочки (т.е. алгоритм будет жадным)
- */
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class C_GreedyKnapsack {
@@ -40,16 +28,18 @@ public class C_GreedyKnapsack {
         }
         System.out.printf("Всего предметов: %d. Рюкзак вмещает %d кг.\n", n, W);
 
-        //тут необходимо реализовать решение задачи
-        //итогом является максимально воможная стоимость вещей в рюкзаке
-        //вещи можно резать на кусочки (непрерывный рюкзак)
+        // Сортируем предметы по убыванию удельной стоимости
+        Arrays.sort(items);
+
         double result = 0;
-        //тут реализуйте алгоритм сбора рюкзака
-        //будет особенно хорошо, если с собственной сортировкой
-        //кроме того, можете описать свой компаратор в классе Item
+        int remainingWeight = W;
 
-        //ваше решение.
-
+        for (Item item : items) {
+            if (remainingWeight <= 0) break;
+            int weightToTake = Math.min(item.weight, remainingWeight);
+            result += weightToTake * (item.cost / (double) item.weight);
+            remainingWeight -= weightToTake;
+        }
 
         System.out.printf("Удалось собрать рюкзак на сумму %f\n", result);
         return result;
@@ -67,17 +57,16 @@ public class C_GreedyKnapsack {
         @Override
         public String toString() {
             return "Item{" +
-                   "cost=" + cost +
-                   ", weight=" + weight +
-                   '}';
+                    "cost=" + cost +
+                    ", weight=" + weight +
+                    '}';
         }
 
         @Override
         public int compareTo(Item o) {
-            //тут может быть ваш компаратор
-
-
-            return 0;
+            double thisValue = this.cost / (double) this.weight;
+            double otherValue = o.cost / (double) o.weight;
+            return Double.compare(otherValue, thisValue); // Сортировка по убыванию
         }
     }
 }
