@@ -68,25 +68,72 @@ public class GraphC {
             }
         }
 
-        // Сортируем компоненты по минимальной вершине в компоненте
-        components.sort((comp1, comp2) -> {
-            char min1 = comp1.iterator().next(); // TreeSet уже отсортирован
-            char min2 = comp2.iterator().next();
-            return Character.compare(min1, min2);
-        });
+        // Теперь нужно отсортировать компоненты в порядке от истока к стоку
+        // Для этого строим граф конденсации и находим топологический порядок
 
-        // Вывод
-        StringBuilder result = new StringBuilder();
+        // Создаем отображение вершина -> компонента
+        Map<Character, Integer> vertexToComponent = new HashMap<>();
         for (int i = 0; i < components.size(); i++) {
-            Set<Character> comp = components.get(i);
+            for (char v : components.get(i)) {
+                vertexToComponent.put(v, i);
+            }
+        }
+
+        // Строим граф конденсации
+        int compCount = components.size();
+        List<Set<Integer>> condensation = new ArrayList<>();
+        for (int i = 0; i < compCount; i++) {
+            condensation.add(new HashSet<>());
+        }
+
+        for (Map.Entry<Character, List<Character>> entry : graph.entrySet()) {
+            char from = entry.getKey();
+            int fromComp = vertexToComponent.get(from);
+
+            for (char to : entry.getValue()) {
+                int toComp = vertexToComponent.get(to);
+                if (fromComp != toComp) {
+                    condensation.get(fromComp).add(toComp);
+                }
+            }
+        }
+
+        // Топологическая сортировка конденсации
+        List<Integer> topoOrder = new ArrayList<>();
+        boolean[] visitedComps = new boolean[compCount];
+
+        for (int i = 0; i < compCount; i++) {
+            if (!visitedComps[i]) {
+                topologicalSort(i, condensation, visitedComps, topoOrder);
+            }
+        }
+
+        Collections.reverse(topoOrder);
+
+        // Вывод в порядке топологической сортировки
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < compCount; i++) {
+            int compIndex = topoOrder.get(i);
+            Set<Character> comp = components.get(compIndex);
             for (char c : comp) {
                 result.append(c);
             }
-            if (i < components.size() - 1) {
+            if (i < compCount - 1) {
                 result.append("\n");
             }
         }
         System.out.print(result.toString());
+    }
+
+    private static void topologicalSort(int v, List<Set<Integer>> graph,
+                                        boolean[] visited, List<Integer> order) {
+        visited[v] = true;
+        for (int neighbor : graph.get(v)) {
+            if (!visited[neighbor]) {
+                topologicalSort(neighbor, graph, visited, order);
+            }
+        }
+        order.add(v);
     }
 
     private static void dfs1(char v, Map<Character, List<Character>> graph,
