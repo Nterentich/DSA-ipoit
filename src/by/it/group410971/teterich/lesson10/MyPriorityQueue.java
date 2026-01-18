@@ -1,3 +1,5 @@
+package by.it.group410971.teterich.lesson10;
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -10,22 +12,18 @@ public class MyPriorityQueue<E> implements Queue<E> {
     private int size;
     private final Comparator<? super E> comparator;
 
-    // Конструктор без компаратора (естественный порядок)
     public MyPriorityQueue() {
         this(DEFAULT_CAPACITY, null);
     }
 
-    // Конструктор с начальной емкостью
     public MyPriorityQueue(int initialCapacity) {
         this(initialCapacity, null);
     }
 
-    // Конструктор с компаратором
     public MyPriorityQueue(Comparator<? super E> comparator) {
         this(DEFAULT_CAPACITY, comparator);
     }
 
-    // Основной конструктор
     public MyPriorityQueue(int initialCapacity, Comparator<? super E> comparator) {
         if (initialCapacity < 1) {
             throw new IllegalArgumentException("Initial capacity must be at least 1");
@@ -35,8 +33,6 @@ public class MyPriorityQueue<E> implements Queue<E> {
         this.comparator = comparator;
     }
 
-    // Конструктор для создания из коллекции
-    @SuppressWarnings("unchecked")
     public MyPriorityQueue(Collection<? extends E> c) {
         if (c == null) {
             throw new NullPointerException("Collection cannot be null");
@@ -46,8 +42,7 @@ public class MyPriorityQueue<E> implements Queue<E> {
         this.heap = c.toArray();
         this.size = c.size();
 
-        // Построение кучи
-        heapify();
+        buildHeap();
     }
 
     @Override
@@ -78,7 +73,6 @@ public class MyPriorityQueue<E> implements Queue<E> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public boolean contains(Object o) {
         if (o == null) {
             for (int i = 0; i < size; i++) {
@@ -88,7 +82,7 @@ public class MyPriorityQueue<E> implements Queue<E> {
             }
         } else {
             for (int i = 0; i < size; i++) {
-                if (o.equals((E) heap[i])) {
+                if (o.equals(heap[i])) {
                     return true;
                 }
             }
@@ -123,26 +117,25 @@ public class MyPriorityQueue<E> implements Queue<E> {
 
         ensureCapacity(size + 1);
 
-        // Добавляем элемент в конец
         int i = size;
         heap[i] = e;
         size++;
 
-        // Просеиваем вверх
         siftUp(i, e);
 
         return true;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public E poll() {
         if (size == 0) {
             return null;
         }
 
         int s = --size;
+        @SuppressWarnings("unchecked")
         E result = (E) heap[0];
+        @SuppressWarnings("unchecked")
         E x = (E) heap[s];
         heap[s] = null;
 
@@ -154,7 +147,6 @@ public class MyPriorityQueue<E> implements Queue<E> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public E remove() {
         if (size == 0) {
             throw new NoSuchElementException("Priority queue is empty");
@@ -163,7 +155,6 @@ public class MyPriorityQueue<E> implements Queue<E> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public E peek() {
         return (size == 0) ? null : (E) heap[0];
     }
@@ -185,15 +176,13 @@ public class MyPriorityQueue<E> implements Queue<E> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public boolean remove(Object o) {
         if (o == null) {
             return false;
         }
 
-        // Ищем элемент
         for (int i = 0; i < size; i++) {
-            if (o.equals((E) heap[i])) {
+            if (o.equals(heap[i])) {
                 removeAt(i);
                 return true;
             }
@@ -229,11 +218,28 @@ public class MyPriorityQueue<E> implements Queue<E> {
         }
 
         boolean modified = false;
-        for (Object element : c) {
-            while (remove(element)) {
+
+        // Создаем новый массив для элементов, которые нужно сохранить
+        Object[] newHeap = new Object[heap.length];
+        int newSize = 0;
+
+        // Копируем элементы, которые не содержатся в коллекции c
+        for (int i = 0; i < size; i++) {
+            Object element = heap[i];
+            if (!c.contains(element)) {
+                newHeap[newSize++] = element;
+            } else {
                 modified = true;
             }
         }
+
+        if (modified) {
+            // Заменяем старую кучу новой
+            heap = newHeap;
+            size = newSize;
+            buildHeap();
+        }
+
         return modified;
     }
 
@@ -248,9 +254,8 @@ public class MyPriorityQueue<E> implements Queue<E> {
         Object[] temp = new Object[size];
         int newSize = 0;
 
-        // Собираем элементы, которые нужно оставить
         for (int i = 0; i < size; i++) {
-            E element = (E) heap[i];
+            Object element = heap[i];
             if (c.contains(element)) {
                 temp[newSize++] = element;
             } else {
@@ -259,21 +264,18 @@ public class MyPriorityQueue<E> implements Queue<E> {
         }
 
         if (modified) {
-            // Заменяем кучу новой
             heap = temp;
             size = newSize;
-            heapify(); // Перестраиваем кучу
+            buildHeap();
         }
 
         return modified;
     }
 
-    // Вспомогательные методы для работы с кучей
-
     private void ensureCapacity(int minCapacity) {
         if (minCapacity > heap.length) {
             int newCapacity = Math.max(heap.length * 2, heap.length + (heap.length >> 1));
-            if (newCapacity < 0) { // Переполнение
+            if (newCapacity < 0) {
                 newCapacity = Integer.MAX_VALUE;
             }
             Object[] newHeap = new Object[newCapacity];
@@ -282,7 +284,6 @@ public class MyPriorityQueue<E> implements Queue<E> {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void siftUp(int k, E x) {
         if (comparator != null) {
             siftUpUsingComparator(k, x);
@@ -291,13 +292,15 @@ public class MyPriorityQueue<E> implements Queue<E> {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void siftUpComparable(int k, E x) {
+        @SuppressWarnings("unchecked")
         Comparable<? super E> key = (Comparable<? super E>) x;
         while (k > 0) {
             int parent = (k - 1) >>> 1;
             Object e = heap[parent];
-            if (key.compareTo((E) e) >= 0) {
+            @SuppressWarnings("unchecked")
+            E elem = (E) e;
+            if (key.compareTo(elem) >= 0) {
                 break;
             }
             heap[k] = e;
@@ -306,12 +309,13 @@ public class MyPriorityQueue<E> implements Queue<E> {
         heap[k] = key;
     }
 
-    @SuppressWarnings("unchecked")
     private void siftUpUsingComparator(int k, E x) {
         while (k > 0) {
             int parent = (k - 1) >>> 1;
             Object e = heap[parent];
-            if (comparator.compare(x, (E) e) >= 0) {
+            @SuppressWarnings("unchecked")
+            E elem = (E) e;
+            if (comparator.compare(x, elem) >= 0) {
                 break;
             }
             heap[k] = e;
@@ -320,7 +324,6 @@ public class MyPriorityQueue<E> implements Queue<E> {
         heap[k] = x;
     }
 
-    @SuppressWarnings("unchecked")
     private void siftDown(int k, E x) {
         if (comparator != null) {
             siftDownUsingComparator(k, x);
@@ -329,22 +332,29 @@ public class MyPriorityQueue<E> implements Queue<E> {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void siftDownComparable(int k, E x) {
+        @SuppressWarnings("unchecked")
         Comparable<? super E> key = (Comparable<? super E>) x;
-        int half = size >>> 1; // Пока узел имеет хотя бы одного ребенка
+        int half = size >>> 1;
         while (k < half) {
             int child = (k << 1) + 1;
             Object c = heap[child];
             int right = child + 1;
 
-            if (right < size &&
-                ((Comparable<? super E>) c).compareTo((E) heap[right]) > 0) {
-                child = right;
-                c = heap[child];
+            if (right < size) {
+                @SuppressWarnings("unchecked")
+                Comparable<? super E> leftChild = (Comparable<? super E>) c;
+                @SuppressWarnings("unchecked")
+                E rightElem = (E) heap[right];
+                if (leftChild.compareTo(rightElem) > 0) {
+                    child = right;
+                    c = heap[child];
+                }
             }
 
-            if (key.compareTo((E) c) <= 0) {
+            @SuppressWarnings("unchecked")
+            E childElem = (E) c;
+            if (key.compareTo(childElem) <= 0) {
                 break;
             }
 
@@ -354,7 +364,6 @@ public class MyPriorityQueue<E> implements Queue<E> {
         heap[k] = key;
     }
 
-    @SuppressWarnings("unchecked")
     private void siftDownUsingComparator(int k, E x) {
         int half = size >>> 1;
         while (k < half) {
@@ -362,13 +371,20 @@ public class MyPriorityQueue<E> implements Queue<E> {
             Object c = heap[child];
             int right = child + 1;
 
-            if (right < size &&
-                comparator.compare((E) c, (E) heap[right]) > 0) {
-                child = right;
-                c = heap[child];
+            if (right < size) {
+                @SuppressWarnings("unchecked")
+                E leftChild = (E) c;
+                @SuppressWarnings("unchecked")
+                E rightChild = (E) heap[right];
+                if (comparator.compare(leftChild, rightChild) > 0) {
+                    child = right;
+                    c = heap[child];
+                }
             }
 
-            if (comparator.compare(x, (E) c) <= 0) {
+            @SuppressWarnings("unchecked")
+            E childElem = (E) c;
+            if (comparator.compare(x, childElem) <= 0) {
                 break;
             }
 
@@ -378,20 +394,20 @@ public class MyPriorityQueue<E> implements Queue<E> {
         heap[k] = x;
     }
 
-    @SuppressWarnings("unchecked")
-    private void heapify() {
-        // Просеиваем все элементы с середины до начала
+    private void buildHeap() {
         for (int i = (size >>> 1) - 1; i >= 0; i--) {
-            siftDown(i, (E) heap[i]);
+            @SuppressWarnings("unchecked")
+            E elem = (E) heap[i];
+            siftDown(i, elem);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private E removeAt(int i) {
+    private void removeAt(int i) {
         int s = --size;
-        if (s == i) { // Удаляем последний элемент
+        if (s == i) {
             heap[i] = null;
         } else {
+            @SuppressWarnings("unchecked")
             E moved = (E) heap[s];
             heap[s] = null;
             siftDown(i, moved);
@@ -399,13 +415,7 @@ public class MyPriorityQueue<E> implements Queue<E> {
                 siftUp(i, moved);
             }
         }
-        return (i < size) ? (E) heap[i] : null;
     }
-
-    /////////////////////////////////////////////////////////////////////////
-    // Остальные методы интерфейса Queue<E> - оставлены нереализованными  //
-    // так как требуются только указанные в задании методы               //
-    /////////////////////////////////////////////////////////////////////////
 
     @Override
     public Iterator<E> iterator() {
@@ -419,24 +429,6 @@ public class MyPriorityQueue<E> implements Queue<E> {
 
     @Override
     public <T> T[] toArray(T[] a) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean removeAll(java.util.Collection<?> c) {
-        // Реализован выше, но нужно объявить для интерфейса
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean containsAll(java.util.Collection<?> c) {
-        // Реализован выше, но нужно объявить для интерфейса
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean retainAll(java.util.Collection<?> c) {
-        // Реализован выше, но нужно объявить для интерфейса
         throw new UnsupportedOperationException();
     }
 }
